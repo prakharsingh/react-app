@@ -1,7 +1,7 @@
 import Http from 'superagent';
 import { AppTypes } from '../constants';
 
-const API_URL = process.env.API_URL;
+const API_URL = process.env.API_URL || '';
 
 export const showToast = ({ message }) => (dispatch) =>
   dispatch({ type: AppTypes.SHOW_TOAST, payload: { message } });

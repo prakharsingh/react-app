@@ -2,7 +2,7 @@ import Http from 'superagent';
 import { change } from 'redux-form';
 import { AppTypes, StorageTypes } from '../constants';
 
-const API_URL = process.env.API_URL;
+const API_URL = process.env.API_URL || '';
 const BUCKET_BASE_URL = 'https://s3.amazonaws.com/assets-prakhar/';
 
 const internals = {

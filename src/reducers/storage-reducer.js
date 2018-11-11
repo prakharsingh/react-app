@@ -3,6 +3,7 @@ import { StorageTypes } from '../constants';
 const INITIAL_STATE = {
   isLoading: false,
   progress: 0,
+  fileName: ''
 };
 
 export default (state = INITIAL_STATE, { type, payload = null }) => {
@@ -12,6 +13,7 @@ export default (state = INITIAL_STATE, { type, payload = null }) => {
       return {
         ...state,
         isLoading: true,
+        fileName: payload.fileName || '',
       };
     case StorageTypes.UPLOAD_FILE_SUCCESS:
       return {
@@ -24,7 +26,13 @@ export default (state = INITIAL_STATE, { type, payload = null }) => {
         ...state,
         progress: payload && payload.progress,
       };
-    default:
+    case StorageTypes.UPLOAD_FILE_FAIL:
+      return {
+        ...state,
+        isLoading: false,
+        progress: 0,
+        fileName: ''
+      };    default:
       return state;
   }
 }

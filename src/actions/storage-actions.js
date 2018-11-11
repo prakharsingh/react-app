@@ -2,7 +2,7 @@ import Http from 'superagent';
 import { change } from 'redux-form';
 import { AppTypes, StorageTypes } from '../constants';
 
-const API_URL = process.env.API_URL || '';
+const API_URL = process.env.REACT_APP_API_URL;
 const BUCKET_BASE_URL = 'https://s3.amazonaws.com/assets-prakhar/';
 
 const internals = {
@@ -17,7 +17,7 @@ const internals = {
 export const initiateUpload = ({ file, key }) => {
   return async dispatch => {
     try {
-      dispatch({ type: StorageTypes.UPLOAD_FILE });
+      dispatch({ type: StorageTypes.UPLOAD_FILE, payload: { fileName: file.name } });
       const { body, statusCode } = await internals.fetchSignedUrl({ key });
 
       if (statusCode === 200) {

@@ -22,7 +22,8 @@ const styles = theme => ({
 
 class FileUploader extends React.Component {
   render() {
-    const { classes, storage: { isLoading, progress } } = this.props;
+    const { classes, storage: { isLoading, progress, fileName } } = this.props;
+
     return (
       <React.Fragment>
         <input
@@ -49,7 +50,7 @@ class FileUploader extends React.Component {
               {progress}
             </CircularProgress>
           }
-          <span>{this.input && this.input.value}</span>
+          <span>{fileName}</span>
         </div>
       </React.Fragment>
     );
@@ -60,7 +61,8 @@ FileUploader.propTypes = {
   handleFile: PropTypes.func.isRequired,
   storage: PropTypes.shape({
     isLoading: PropTypes.bool,
-    progress: PropTypes.number
+    progress: PropTypes.number,
+    fileName: PropTypes.string,
   }).isRequired
 };
 

@@ -1,50 +1,57 @@
-import { buffers, eventChannel, END } from 'redux-saga';
+import { eventChannel, END } from 'redux-saga';
+import { take, fork, put, call } from'redux-saga/effects';
 
-export default (endpoint, file, signedData) => {
-  return eventChannel(emitter => {
-    const xhr = new XMLHttpRequest();
+function asyncTask(callback) {
+  if (callback) {
+    setTimeout(() => {
+      callback('progress');
+    }, 300);
+  }
 
-    const onProgress = (e) => {
-      if (e.lengthComputable) {
-        const progress = Math.round(e.loaded / e.total);
-        emitter({ progress });
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve('finish');
+    }, 500);
+  });
+}
+
+function createAsyncTaskRunner(data) {
+
+  let emit;
+  const chan = eventChannel(emitter => {
+    emit = emitter;
+    return () => {}
+  });
+
+  const promise = asyncTask((data) => {
+    emit('PROGRESS');
+    /*
+       stop if 100% uploaded (using inside project)
+       if (data && data.progress === 1) {
+        emit(END);
       }
-    };
+    */
+  });
 
-    const onFailure = () => {
-      emitter({ err: new Error('Upload failed') });
-      emitter(END);
-    };
 
-    xhr.upload.addEventListener("progress", onProgress);
-    xhr.upload.addEventListener("error", onFailure);
-    xhr.upload.addEventListener("abort", onFailure);
+  return [ promise, chan ];
+}
 
-    xhr.onreadystatechange = () => {
-      const { readyState, status } = xhr;
-      if (readyState === 4) {
-        if (status === 200) {
-          emitter({ success: true });
-          emitter(END);
-        }
-        else {
-          onFailure();
-        }
-      }
-    };
 
-    xhr.open("POST", endpoint, true);
-    Object
-      .keys(signedData)
-      .map(key => xhr.setRequestHeader(key, signedData[key]));
-    xhr.send(file);
+function* watchOnProgress(chan) {
+  while (true) {
+    const data = yield take(chan);
+    yield put({ type: 'PROGRESS', payload: data });
+  }
+}
 
-    return () => {
-      xhr.upload.removeEventListener("progress", onProgress);
-      xhr.upload.removeEventListener("error", onFailure);
-      xhr.upload.removeEventListener("abort", onFailure);
-      xhr.onreadystatechange = null;
-      xhr.abort();
-    };
-  }, buffers.sliding(2));
+function* uploadSource(action) {
+  const [ promise, chan ] = createAsyncTaskRunner('test');
+  yield fork(watchOnProgress, chan);
+  try {
+    const result = yield call(() => promise);
+    put({ type: 'SUCCESS', result });
+  } catch (err) {
+    put({ type: 'ERROR' });
+  }
 }

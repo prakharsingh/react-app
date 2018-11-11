@@ -3,27 +3,39 @@ import { Typography } from '@material-ui/core';
 import { Row } from 'react-flexbox-grid';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { submitForm, uploadFile } from '../../actions';
+import { AppActions, StorageActions } from '../../actions';
 import UserForm from './fragments/user-form';
-import './home.css';
+import RandomString from '../../utils/random';
 
 class Home extends React.Component {
-  handleUpload = (e) => {
-    const fileDetails = {
-      file: e.target.files[0]
-    };
+  getNewFileName = (fileName) => {
+    const arr = fileName.split('.');
+    const last = arr.length - 1;
+    const randString = RandomString() + "-" + Date.now();
+    return randString + '.' + arr[last];
+  };
 
-    this.props.uploadFile(fileDetails);
+  handleUpload = (e) => {
+    const file = e.target.files[0];
+    const acl = 'public-read';
+    const key = encodeURIComponent(acl + '/' + this.getNewFileName(file.name));
+
+    this.props.initiateUpload({ file, key });
   };
 
   render() {
-    const { submit } = this.props;
+    const { submit, storage: { isLoading } } = this.props;
     return (
   <React.Fragment>
     <Row center="md">
-      <Typography variant="headline" gutterBottom>Business Details</Typography>
+      <Typography variant="h5" gutterBottom>Business Details</Typography>
     </Row>
-        <UserForm onSubmit={ submit } onFileUpload={ this.handleUpload }/>
+    <hr/>
+    <UserForm
+      onSubmit={ (fields) => submit(fields) }
+      onFileUpload={ this.handleUpload }
+      isSubmitDisabled={ isLoading }
+    />
   </React.Fragment>
     )
   }
@@ -33,11 +45,13 @@ Home.propTypes = {};
 
 Home.defaultProps = {};
 
-const mapStateToProps = (state) => ({});
+const mapStateToProps = (state) => ({
+  storage: state.storage
+});
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
-  submit: submitForm,
-  uploadFile: uploadFile,
+  submit: AppActions.submitForm,
+  initiateUpload: StorageActions.initiateUpload,
 }, dispatch);
 
 export default connect(

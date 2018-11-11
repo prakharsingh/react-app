@@ -13,7 +13,7 @@ const requiredFields = [
   'membership'
 ];
 
-const UserForm = ({ isSubmitDisabled, submitting, handleSubmit, onFileUpload }) => (
+const UserForm = ({ isSubmitDisabled, submitting, handleSubmit, onFileUpload, values }) => console.log(values) || (
   <form onSubmit={ handleSubmit }>
     <Row>
       <Col md={ 6 }>

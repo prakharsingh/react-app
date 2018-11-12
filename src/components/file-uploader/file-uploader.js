@@ -1,7 +1,8 @@
 import React from 'react';
+import { getFormValues } from 'redux-form';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Button, withStyles, CircularProgress } from '@material-ui/core';
+import { Button, withStyles, CircularProgress, Card, CardMedia } from '@material-ui/core';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 
 const styles = theme => ({
@@ -17,12 +18,24 @@ const styles = theme => ({
   container: {
     display: 'flex',
     alignItems: 'center',
+  },
+  card: {
+    maxWidth: 150,
+  },
+  media: {
+    height: 140,
+    width:140
+  },
+  imageContainer: {
+    marginTop: -104,
+    float: 'right'
   }
 });
 
 class FileUploader extends React.Component {
   render() {
-    const { classes, storage: { isLoading, progress } } = this.props;
+    const { classes, storage: { isLoading, progress, fileName }, values } = this.props;
+
     return (
       <React.Fragment>
         <input
@@ -32,7 +45,7 @@ class FileUploader extends React.Component {
           onChange={ this.props.handleFile }
           hidden
         />
-        <div className={classes.container}>
+        <div className={ classes.container }>
           <Button
             color="primary"
             variant="contained"
@@ -45,12 +58,26 @@ class FileUploader extends React.Component {
           </Button>
           {
             isLoading &&
-            <CircularProgress className={ classes.progress } variant="indeterminate">
-              {progress}
-            </CircularProgress>
+            <React.Fragment>
+              <CircularProgress className={ classes.progress } variant="indeterminate">
+                { progress }
+              </CircularProgress>
+              <span>{ fileName }</span>
+            </React.Fragment>
           }
-          <span>{this.input && this.input.value}</span>
         </div>
+        {
+          values && values.profilePicUrl &&
+          <div className={classes.imageContainer}>
+            <Card className={classes.card}>
+              <CardMedia
+                className={classes.media}
+                image={values.profilePicUrl || ''}
+                title='profile-pic'
+              />
+            </Card>
+          </div>
+        }
       </React.Fragment>
     );
   }
@@ -60,12 +87,14 @@ FileUploader.propTypes = {
   handleFile: PropTypes.func.isRequired,
   storage: PropTypes.shape({
     isLoading: PropTypes.bool,
-    progress: PropTypes.number
-  }).isRequired
+    progress: PropTypes.number,
+    fileName: PropTypes.string,
+  }).isRequired,
 };
 
 const mapStateToProps = (state) => ({
-  storage: state.storage
+  storage: state.storage,
+  values: getFormValues('userForm')(state)
 });
 
 export default connect(mapStateToProps, null)(withStyles(styles)(FileUploader));
